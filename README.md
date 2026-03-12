@@ -6,6 +6,8 @@
 ## 🔗 Live Demo
 **[https://contract-pilot.onrender.com](https://contract-pilot.onrender.com)**
 
+> ⚠️ **Note:** The app is hosted on Render's free tier which spins down after inactivity. If you see a loading screen when you first open the link, just wait 30–60 seconds for the server to start up. It will load normally after that.
+
 ---
 
 ## 🧠 What I Built
@@ -163,3 +165,4 @@ Built the full MVP pipeline first (auth → upload → analyze → display) befo
 - Support for DOCX files in addition to PDF
 
 ---
+
