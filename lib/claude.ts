@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const geminiApiKey = process.env.GEMINI_API_KEY
+const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null
 const STATIC_MODEL_CANDIDATES = [
   process.env.GEMINI_MODEL,
   'gemini-2.0-flash',
@@ -50,6 +51,10 @@ function rankModelName(name: string) {
 }
 
 async function generateWithModelFallback(prompt: string) {
+  if (!genAI) {
+    throw new Error('GEMINI_API_KEY is missing')
+  }
+
   const apiModels = await getApiSupportedModelCandidates()
   const MODEL_CANDIDATES = Array.from(new Set([...STATIC_MODEL_CANDIDATES, ...apiModels])).sort(
     (a, b) => rankModelName(a) - rankModelName(b)
@@ -74,6 +79,11 @@ async function generateWithModelFallback(prompt: string) {
   }
 
   return text
+}
+
+function cleanModelJson(text: string) {
+  const stripped = text.replace(/```json|```/g, '').trim()
+  return stripped
 }
 
 export async function analyzeContract(contractText: string) {
@@ -119,16 +129,24 @@ ${contractText}
 Return only the JSON object. No markdown. No backticks. Just raw JSON.`
   const text = await generateWithModelFallback(prompt)
 
-  const clean = text.replace(/```json|```/g, '').trim()
+  const clean = cleanModelJson(text)
   return JSON.parse(clean)
 }
 
 
 export async function generateCounterProposal(clauses: any[]) {
+  if (!Array.isArray(clauses)) {
+    throw new Error('Analysis clauses are missing or invalid')
+  }
+
   const riskyClause = clauses
     .filter((c) => c.risk === 'High' || c.risk === 'Medium')
     .map((c) => `Type: ${c.type}\nRisk: ${c.risk}\nOriginal: ${c.excerpt}\nIssue: ${c.explanation}`)
     .join('\n\n')
+
+  if (!riskyClause) {
+    return []
+  }
 
   const prompt = `You are a legal expert helping freelancers negotiate better contracts.
 
@@ -153,6 +171,12 @@ ${riskyClause}
 Return only the JSON array.`
 
   const text = await generateWithModelFallback(prompt)
-  const clean = text.replace(/```json|```/g, '').trim()
-  return JSON.parse(clean)
+  const clean = cleanModelJson(text)
+  const parsed = JSON.parse(clean)
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('Counter-proposal model output was not a JSON array')
+  }
+
+  return parsed
 }

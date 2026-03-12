@@ -30,11 +30,13 @@ export default function ContractPage() {
 
       // If already analyzed, fetch existing analysis
       if (contract.status === 'analyzed') {
-        const { data: existingAnalysis } = await supabase
+        const { data: existingAnalyses } = await supabase
           .from('analyses')
           .select('*')
           .eq('contract_id', id)
-          .single()
+          .limit(1)
+
+        const existingAnalysis = existingAnalyses?.[0]
 
         if (existingAnalysis) {
           setAnalysis({

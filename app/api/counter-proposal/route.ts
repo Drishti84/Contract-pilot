@@ -6,11 +6,17 @@ export async function POST(req: NextRequest) {
   try {
     const { contractId } = await req.json()
 
-    const { data: analysis } = await supabase
+    const { data: analyses, error: analysisError } = await supabase
       .from('analyses')
       .select('*')
       .eq('contract_id', contractId)
-      .single()
+      .limit(1)
+
+    if (analysisError) {
+      return NextResponse.json({ error: analysisError.message }, { status: 500 })
+    }
+
+    const analysis = analyses?.[0]
 
     if (!analysis) {
       return NextResponse.json({ error: 'Analysis not found' }, { status: 404 })
@@ -21,6 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, counterProposal })
   } catch (err) {
     console.error('Counter proposal error:', err)
-    return NextResponse.json({ error: 'Failed to generate counter proposal' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Failed to generate counter proposal'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

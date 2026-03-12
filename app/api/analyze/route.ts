@@ -28,6 +28,16 @@ export async function POST(req: NextRequest) {
     // Call Claude API
     const analysis = await analyzeContract(contract.raw_text)
 
+    // Replace any existing analysis rows for this contract to keep one latest row.
+    const { error: deleteError } = await supabase
+      .from('analyses')
+      .delete()
+      .eq('contract_id', contractId)
+
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    }
+
     // Save analysis to Supabase
     const { error: insertError } = await supabase
       .from('analyses')
