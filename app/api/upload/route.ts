@@ -19,10 +19,7 @@ export async function POST(req: NextRequest) {
 
     // Extract text from PDF
     const buffer = Buffer.from(await file.arrayBuffer())
-    // Import parser implementation directly to avoid pdf-parse debug entrypoint side effects.
-    // @ts-expect-error pdf-parse internal path does not ship declaration files.
-    const pdfParseModule = await import('pdf-parse/lib/pdf-parse.js')
-    const pdfParse = (pdfParseModule as { default?: (buffer: Buffer) => Promise<{ text: string }> }).default ?? (pdfParseModule as unknown as (buffer: Buffer) => Promise<{ text: string }>)
+    const pdfParse = (await import('pdf-parse')).default
     const parsed = await pdfParse(buffer)
     const rawText = parsed.text
 
