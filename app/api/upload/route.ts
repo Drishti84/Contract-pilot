@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
 
     // Extract text from PDF
     const buffer = Buffer.from(await file.arrayBuffer())
-    const pdfParse = require('pdf-parse/lib/pdf-parse.js') as PdfParseFn
+    const pdfParsePath = require.resolve('pdf-parse/lib/pdf-parse.js')
+    const pdfParse = require(pdfParsePath) as PdfParseFn
     const parsed = await pdfParse(buffer)
     const rawText = parsed.text
 
