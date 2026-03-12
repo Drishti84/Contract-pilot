@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getServerSession } from 'next-auth'
+import { createRequire } from 'module'
+
+const require = createRequire(import.meta.url)
+type PdfParseResult = { text: string }
+type PdfParseFn = (buffer: Buffer) => Promise<PdfParseResult>
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     // Extract text from PDF
     const buffer = Buffer.from(await file.arrayBuffer())
-    const pdfParse = (await import('pdf-parse')).default
+    const pdfParse = require('pdf-parse/lib/pdf-parse.js') as PdfParseFn
     const parsed = await pdfParse(buffer)
     const rawText = parsed.text
 
