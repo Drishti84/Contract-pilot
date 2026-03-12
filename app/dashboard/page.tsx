@@ -23,6 +23,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from('contracts')
         .select('*, analyses(overall_score)')
+        .eq('user_id', session?.user?.email)
         .order('uploaded_at', { ascending: false })
       if (!error && data) setContracts(data)
       setLoading(false)

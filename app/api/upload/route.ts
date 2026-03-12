@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     // Extract text from PDF
     const buffer = Buffer.from(await file.arrayBuffer())
-   const pdfParse = require('pdf-parse') as PdfParseFn
+    const pdfParse = require('pdf-parse/lib/pdf-parse.js') as PdfParseFn
     const parsed = await pdfParse(buffer)
     const rawText = parsed.text
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase
       .from('contracts')
       .insert({
-        user_id: null, // we'll link properly in Phase 3 polish
+        user_id: session.user.email,
         filename: file.name,
         raw_text: rawText,
         status: 'pending'
